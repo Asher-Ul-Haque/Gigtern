@@ -2,8 +2,14 @@ package just.somebody.gigtern.domain.entities
 
 import jakarta.persistence.*
 import org.hibernate.annotations.UuidGenerator
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.LocalDateTime
 import java.util.UUID
 
+/*
+@EntityListeners(AuditingEntityListener::class)
 @Entity
 @Table(name = "students")
 data class StudentEntity(
@@ -41,4 +47,22 @@ data class StudentEntity(
 
 	// - - - WARN: Not counting for MVP
 	@Column(columnDefinition = "TEXT")
-	val studentIdProofUrl: String? = null)
+	val studentIdProofUrl: String? = null,
+
+	@CreatedDate
+	@Column(
+		name      = "created_at",
+		nullable  = false,
+		updatable = false,
+		unique    = false)
+	val createdAt: LocalDateTime = LocalDateTime.now(),
+
+	@LastModifiedDate
+	@Column(
+		name      = "updated_at",
+		nullable  = false,
+		updatable = true,
+		unique    = false)
+	var updatedAt: LocalDateTime = LocalDateTime.now()
+)
+ */

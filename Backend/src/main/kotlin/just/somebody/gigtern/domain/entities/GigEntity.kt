@@ -24,6 +24,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
+/*
+@EntityListeners(AuditingEntityListener::class)
 @Entity
 @Table(name = "gigs")
 data class GigEntity(
@@ -116,3 +118,5 @@ data class GigEntity(
 		updatable = true,
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now())
+
+ */

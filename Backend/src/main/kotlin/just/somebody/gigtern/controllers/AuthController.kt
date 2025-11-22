@@ -27,7 +27,9 @@ class AuthController(private val SERVICE : AuthService)
 	}
 
 	@PostMapping("/login")
-	fun login(@RequestBody REQUEST: AuthRequestDTO): ResponseEntity<AuthResponseDTO>
+	fun login(
+		@Valid
+		@RequestBody REQUEST: AuthRequestDTO): ResponseEntity<AuthResponseDTO>
 	{
 		return ResponseEntity(SERVICE.loginUser(REQUEST), HttpStatus.ACCEPTED)
 	}

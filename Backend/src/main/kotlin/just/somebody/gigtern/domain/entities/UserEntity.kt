@@ -5,6 +5,8 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import just.somebody.gigtern.domain.enums.Role
@@ -17,16 +19,17 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(name = "users")
 data class UserEntity(
 	@Id
-	@UuidGenerator
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(
 		name      = "id",
 		updatable = false,
 		nullable  = false,
 		unique    = true)
-	val id: UUID = UUID.randomUUID(),
+	val id: Long = 0,
 
 	@Column(
 		name      = "name",
@@ -48,7 +51,6 @@ data class UserEntity(
 		nullable  = true,
 		unique    = false)
 	var oneLiner: String? = null,
-
 
 	@Column(
 		name      = "password_hash",

@@ -1,9 +1,12 @@
 package just.somebody.gigtern.utils.exceptions
 
 import jakarta.servlet.http.HttpServletRequest
+import just.somebody.gigtern.service.exceptions.UserAlreadyExistsException
+import just.somebody.gigtern.service.exceptions.UserNotFoundException
 import just.somebody.gigtern.utils.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -45,4 +48,22 @@ class GlobalExceptionHandler
 
 		return ResponseEntity(error, STATUS)
 	}
+
+	@ExceptionHandler(UserAlreadyExistsException::class)
+	fun handleUserAlreadyExists(
+		EXCEPTION : UserAlreadyExistsException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.CONFLICT) // 409
+
+	@ExceptionHandler(UserNotFoundException::class)
+	fun handleUserNotFound(
+		EXCEPTION : UserNotFoundException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.NOT_FOUND) // 404
+
+	@ExceptionHandler(SecurityException::class, AuthenticationException::class)
+	fun handleAuthenticationFailure(
+		EXCEPTION : Exception,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.UNAUTHORIZED) // 401
 }

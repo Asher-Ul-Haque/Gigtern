@@ -8,7 +8,6 @@ import just.somebody.gigtern.domain.enums.Role
 import just.somebody.gigtern.utils.Logger
 import org.springframework.stereotype.Component
 import java.util.Date
-import java.util.UUID
 import javax.crypto.SecretKey
 
 
@@ -19,7 +18,7 @@ class JwtProvider(private val CONFIG: JwtConfig)
 	private val key: SecretKey by lazy {  Keys.hmacShaKeyFor(Decoders.BASE64.decode(CONFIG.secret)) }
 
 	// - - - generate a token
-	fun generateToken(USER_ID : UUID, ROLE : Role): String
+	fun generateToken(USER_ID: Long, ROLE: Role): String
 	{
 		val now         = Date()
 		val expiryDate  = Date(now.time + CONFIG.expiration)

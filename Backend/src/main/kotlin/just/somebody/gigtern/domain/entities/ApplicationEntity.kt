@@ -6,6 +6,8 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -13,6 +15,7 @@ import jakarta.persistence.Table
 import just.somebody.gigtern.domain.enums.ApplicationStatus
 import just.somebody.gigtern.domain.enums.Role
 import just.somebody.gigtern.domain.enums.VerificationStatus
+import org.hibernate.annotations.IdGeneratorType
 import org.hibernate.annotations.UuidGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -20,17 +23,19 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
+/*
 @Entity
+@EntityListeners(AuditingEntityListener::class)
 @Table(name = "applications")
 data class ApplicationEntity(
 	@Id
-	@UuidGenerator
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(
 		name      = "id",
 		updatable = false,
 		nullable  = false,
 		unique    = true)
-	val id: UUID = UUID.randomUUID(),
+	val id: Long = 0,
 
 	// - - - Many-to-One relationship with Gig
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -88,3 +93,4 @@ data class ApplicationEntity(
 		updatable = true,
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now())
+ */
