@@ -8,7 +8,7 @@ plugins {
 
 group       = "just.somebody"
 version     = "0.0.1-SNAPSHOT"
-description = "Ride Share Backend for HackHatch Hackathon"
+description = "Gigtern"
 
 java {
 	toolchain {

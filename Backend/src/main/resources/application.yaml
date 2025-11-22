@@ -10,8 +10,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
 
 jwt:
   secret     : ${JWT_SECRET}
   expiration : 86400000
+  public     :
+    - "/api/v1/auth/register"
+    - "/api/v1/auth/login"
+    - "/api/v1/gigs"

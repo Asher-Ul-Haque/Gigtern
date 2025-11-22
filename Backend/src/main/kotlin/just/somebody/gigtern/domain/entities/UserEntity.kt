@@ -1,0 +1,91 @@
+package just.somebody.gigtern.domain.entities
+
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import just.somebody.gigtern.domain.enums.Role
+import just.somebody.gigtern.domain.enums.VerificationStatus
+import org.hibernate.annotations.UuidGenerator
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.LocalDateTime
+import java.util.UUID
+
+@Entity
+@Table(name = "users")
+data class UserEntity(
+	@Id
+	@UuidGenerator
+	@Column(
+		name      = "id",
+		updatable = false,
+		nullable  = false,
+		unique    = true)
+	val id: UUID = UUID.randomUUID(),
+
+	@Column(
+		name      = "name",
+		updatable = true,
+		nullable  = false,
+		unique    = false)
+	var name: String = "",
+
+	@Column(
+		name      = "email",
+		updatable = true,
+		nullable  = false,
+		unique    = true)
+	var email: String = "",
+
+	@Column(
+		name      = "onliner",
+		updatable = true,
+		nullable  = true,
+		unique    = false)
+	var oneLiner: String? = null,
+
+
+	@Column(
+		name      = "password_hash",
+		updatable = true,
+		nullable  = false,
+		unique    = false)
+	var passwordHash: String = "",
+
+	@Enumerated(EnumType.STRING)
+	@Column(
+		name      = "role",
+		updatable = false,
+		nullable  = false,
+		unique    = false)
+	val role: Role = Role.STUDENT,
+
+	@Enumerated(EnumType.STRING)
+	@Column(
+		name      = "verification_status",
+		updatable = true,
+		nullable  = false,
+		unique    = false)
+	var verificationStatus: VerificationStatus = VerificationStatus.PENDING,
+
+	@CreatedDate
+	@Column(
+		name      = "created_at",
+		nullable  = false,
+		updatable = false,
+		unique    = false)
+	val createdAt: LocalDateTime = LocalDateTime.now(),
+
+	@LastModifiedDate
+	@Column(
+		name      = "updated_at",
+		nullable  = false,
+		updatable = true,
+		unique    = false)
+	var updatedAt: LocalDateTime = LocalDateTime.now()
+)

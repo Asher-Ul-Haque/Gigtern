@@ -1,54 +1,77 @@
-# REST API Endpoints
+# Gigtern REST API Endpoints (v1)
 
-This is the first iteration of the endpoints for the MVP, prioritizing Identity / Trust, Core Functionality and Monetization.
-
-## Feature List 
-| Priority | Description | Purpose |
-| --------------- | --------------- | --------------- |
-| 1 | User Authentication and Identity | Trust and Feasibility for a closed network |
-| 2 | Ride Listing | Driver can define a ride with multiple ordered stops |
-| 3 | Ride Searching | Passenger can search for rides and see relevant information (stops, reputation, gender, price) |
-| 4 | Ride Request and Acceptance Flow | Passenger requests a ride segment, Driver accepts, seat is booked |
-| 5 | Mock Escrow | Simulate Payment and Settlement |
-
-## Non Priority Features
-* Real time GPS tracking
-* Dynamic pricing
-* Robust rating
-* Payment Gateway integration
-
----
-
-## Endpoint List 
-
-### Authenticity and Identity 
-| Method | Endpoint | Payload | Description |
-| ---------- | ---------- | ---------- | ------- |
-| POST | /api/v1/auth/signup/ | Body: User creation data, Returns JWT/ Auth Token, User object | Register a new user and perform mock IIIT-D verification, for now just note the IP |
-| POST | /api/v1/auth/login/ | Body: Roll No, User Type, Returns: JWT/Auth Token/ User object | Log in an existing user |
-| GET | /api/v1/users/{roll} | Returns: User object | Get a user's profile and reputation status | 
+This list outlines the primary RESTful endpoints for the Gigtern backend, categorized by the main domain resource they manage.
 
 
-### Ride Management (Supply)
-| Method | Endpoint | Payload | Description |
-| ---------- | ---------- | ---------- | ------- |
-| POST | /api/v1/rides/ | Body: Ride data Returns: Created Ride object | Driver created a new ride listing |
-| GET | /api/v1/rides/{id} | Returns: Ride object with nested stop list | Get a specific ride listing with its associated stops and passengers |
-| GET | /api/v1/rides/{driverRoll}/active | Returns: List of Ride objects | Get active ride by driver | 
+## Authorization / User 
+| Endpoint               | HTTP Method | Description | Roles Allowed |
+|------------------------| --------------- | --------------- | --------------- | 
+| /api/v1/auth/register  | POST | Register a new user (Student or Employer) | Public | 
+| /api/v1/auth/login     | POST | Authenticate and return an access token. | Public | 
+| /api/v1/users/{userId} | GET | Retrieve user profile (general info) | Authenticated | 
+| /api/v1/users/me       | GET | Retrieve the authenticated user's full profile | Authenticated | 
+
+## Student Profile
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| --------------- | --------------- | --------------- | --------------- | 
+| /api/v1/students/me | PUT | Update student details (skills, university, preferences). | Student |
+| /api/v1/students/me/verification | POST | Upload student ID for verification. | Student |
+| /api/v1/students/{studentId} | GET | Get a student's public profile and reviews. | Authenticated |
+
+## Employer Profile
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| --------------- | --------------- | --------------- | --------------- | 
+| /api/v1/employers/me | PUT | Update employer details (company name, contact). | Employer |
+| /api/v1/employers/me/verification | POST | Upload Aadhar/KYC for verification. | Employer |
+| /api/v1/employers/{employerId} | GET | Get an employer's public profile and reviews. | Authenticated |
 
 
-### Search & Booking (Demand)
-| Method | Endpoint | Payload | Description |
-| ---------- | ---------- | ---------- | ------- |
-| GET | /api/v1/rides/search | Query: departure time, pickup location, drop off location Returns: filtered and safety prioritized list of Ride objects | Passenger searches for available rides |
-| POST | /api/v1/rides/{id}/request | Body: Ride request data (passenger id, pickup stop, drop off stop, quoted contribution) | Passenger requests a seat segment on a ride, along with stops |
-| POST | /api/v1/rides/requests/{requestId}/accept | Path: request ID, returns updated ride request status (ACCEPTED) | Driver accepts the pending request | 
+## Gigs
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/gigs | POST | Create a new gig posting. | Employer |
+| /api/v1/gigs | GET | List all available gigs (for students). Supports filtering and sorting. | Student |
+| /api/v1/gigs/my | GET | List gigs posted by the authenticated employer. | Employer |
+| /api/v1/gigs/{gigId} | GET | Retrieve a specific gig by ID. | Authenticated |
+| /api/v1/gigs/{gigId} | PUT | Update an existing gig posting. | Employer |
+| /api/v1/gigs/{gigId}/status | PATCH | Update the gig status (e.g., from OPEN to CLOSED). | Employer |
+| /api/v1/gigs/search | GET | Specialized search endpoint (for personalized matchmaking). | Student |
 
 
-### Monetization and Settlement 
-| Method | Endpoint | Payload | Description |
-| ---------- | ---------- | ---------- | ------- |
-| POST | /api/v1/rides/requests/{requestID}/pay | Returns: updated ride request status | Passenger pays |
-| POST | /api/v1/rides/{rideId}/complete | Returns: updated ride status | Driver marks the entire ride as complete |
-| POST | /api/v1/rides/requests/{requestId}/settle | Returns: updated ride request status | Internal API to finalize payment | 
+## Application Matches
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/gigs/{gigId}/apply | POST | Student applies to a specific gig. | Student |
+| /api/v1/applications/my | GET | List applications made by the authenticated student. | Student |
+| /api/v1/gigs/{gigId}/applications | GET | List all applications for a specific gig (includes QuickBook scores). | Employer |
+| /api/v1/applications/{applicationId}/accept | PATCH | Employer accepts an application, setting the gig status to MATCHED/BOOKED. | Employer |
+| /api/v1/applications/{applicationId}/reject | PATCH | Employer rejects an application. | Employer |
 
+
+## Rehire
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/employers/me/favorites/{studentId} | POST | Employer adds a student to a 'rehire' list. | Employer |
+| /api/v1/employers/me/favorites | GET | List of all favorite students for easy rehire. | Employer |
+
+
+## Reviews / Ratings
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/gigs/{gigId}/review | POST | Submit a two-way review (both student and employer use this). | Authenticated |
+| /api/v1/users/{userId}/reviews | GET | Get all reviews received by a user. | Authenticated |
+
+
+## Transactions
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/transactions/gig/{gigId} | POST | Initiate payment and process commission fees upon gig completion. | Employer |
+| /api/v1/transactions/my | GET | Get the authenticated user's transaction history. | Authenticated |
+
+
+## Messaging (Secure Chats)
+| Endpoint | HTTP Method | Description | Roles Allowed |
+| -------- | ----------- | ----------- | ------------- |
+| /api/v1/chats | GET | List all chat threads for the user. | Authenticated |
+| /api/v1/chats/{chatId}/messages | GET | Retrieve message history for a thread. | Authenticated |
+| /api/v1/chats/{chatId}/messages | POST | Send a new message. (Note: A dedicated WebSocket service is better for real-time chat, but REST can initiate the chat.) | Authenticated |
