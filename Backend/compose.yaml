@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB= test_ride_share_data'
+      - 'POSTGRES_PASSWORD= test_ride_share_pass'
+      - 'POSTGRES_USER= test_ride_share_user'
+    ports:
+      - '5432'
