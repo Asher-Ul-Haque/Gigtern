@@ -23,7 +23,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
-/*
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 @Table(name = "applications")
@@ -93,4 +92,3 @@ data class ApplicationEntity(
 		updatable = true,
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now())
- */

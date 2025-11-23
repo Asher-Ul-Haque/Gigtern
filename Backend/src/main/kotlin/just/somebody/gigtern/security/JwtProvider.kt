@@ -50,8 +50,8 @@ class JwtProvider(private val CONFIG: JwtConfig)
 		}
 	}
 
-	// - - - extract the user ID (UUID string)
-	fun getUserIdFromToken(JWT: String): String? = getClaimsFromToken(JWT)?.subject
+	// - - - extract the user ID
+	fun getUserIdFromToken(JWT: String): Long? = getClaimsFromToken(JWT)?.subject?.toLong()
 
 	// - - - validate token
 	fun validateToken(JWT: String) : Boolean

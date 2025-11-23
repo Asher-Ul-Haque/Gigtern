@@ -12,7 +12,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.util.UUID
 
 
 @Component
@@ -22,18 +21,30 @@ class JwtAuthFilter(
 	private val CONFIG   : JwtConfig
 ): OncePerRequestFilter()
 {
-	override fun shouldNotFilter(REQUEST : HttpServletRequest): Boolean
-	{
+	override fun shouldNotFilter(REQUEST : HttpServletRequest): Boolean {
 		val path = REQUEST.servletPath
-		return CONFIG.public.any { path.startsWith(it) }
+		if (path.startsWith("/api/v1/register") ||
+			path.startsWith("/api/v1/login") || path.startsWith("/api/v1/gigs") && REQUEST.method == "GET"
+		) {
+			return true
+		}
+		return false
 	}
+
 
 	private fun resolveToken(REQUEST: HttpServletRequest) : String?
 	{
 		val bearerToken = REQUEST.getHeader("Authorization")
 		return if (bearerToken != null && bearerToken.startsWith("Bearer "))
-		{ bearerToken.substring(7) }
-		else null
+		{
+			Logger.LOG_INFO("[JWT Auth Filter] Extracted JWT: $bearerToken") // Log the extracted token
+			bearerToken.substring(7)
+		}
+		else
+		{
+			Logger.LOG_ERROR("[JWT Auth Filter] Authorization header found but doesn't start with 'Bearer '.")
+			null
+		}
 	}
 
 	override fun doFilterInternal(
@@ -45,55 +56,64 @@ class JwtAuthFilter(
 		val jwt = resolveToken(REQUEST)
 		if (jwt != null)
 		{
-			// - - - Validate token
-			if (!PROVIDER.validateToken(jwt))
+			try
 			{
-				Logger.LOG_ERROR("[JWT Auth Filter] Invalid or expired JWT: $jwt")
-				RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT")
-				return
-			}
-
-			// - - - Extract user ID (UUID string)
-			val userIdString = PROVIDER.getUserIdFromToken(jwt)
-			if (userIdString == null)
-			{
-				Logger.LOG_ERROR("[JWT Auth Filter] Could not extract user ID from token")
-				RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT payload")
-				return
-			}
-
-			// - - - Set Authentication Context if not already set
-			if (SecurityContextHolder.getContext().authentication == null)
-			{
-				try
+				// 1. Validate token
+				if (!PROVIDER.validateToken(jwt))
 				{
-					val userId = UUID.fromString(userIdString)
-					val user   = REPO.findById(userId)
-					if (user.isEmpty)
+					Logger.LOG_ERROR("[JWT Auth Filter] Invalid or expired JWT: $jwt")
+					RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT")
+					return
+				}
+
+				// 2. Extract user ID (now expected to be a Long ID string)
+				val userId = PROVIDER.getUserIdFromToken(jwt)
+				if (userId == null)
+				{
+					Logger.LOG_ERROR("[JWT Auth Filter] Could not extract user ID from token")
+					RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT payload (missing user ID)")
+					return
+				}
+
+				// 3. Set Authentication Context if not already set
+				if (SecurityContextHolder.getContext().authentication == null)
+				{
+
+					// Fetch UserEntity from DB (ID is Long now)
+					val userOptional = REPO.findById(userId)
+					if (userOptional.isEmpty)
 					{
 						Logger.LOG_ERROR("[JWT Auth Filter] : User not found in database for ID: $userId")
-						throw BadCredentialsException("User not found in database for ID: $userIdString")
+						throw BadCredentialsException("User not found in database for ID: $userId")
 					}
 
-					// - - - Create authorities list using ROLE_ prefix
-					val authorities = listOf(SimpleGrantedAuthority("ROLE_${user.get().name}"))
+					val user = userOptional.get() // Get the UserEntity
 
-					// - - - Create authentication token
+					// 4. Create authorities list using ROLE_ prefix
+					// We use user.getRole().name() because role is a public val in the entity
+					val authorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+
+					// 5. Create authentication token
+					// FIX: Ensure the principal passed is the UserEntity object
 					val auth = UsernamePasswordAuthenticationToken(
-						user,
+						user, // This is the UserEntity object that becomes the @AuthenticationPrincipal
 						null,
 						authorities)
 
 					SecurityContextHolder.getContext().authentication = auth
 
-					Logger.LOG_INFO("[JWT Auth Filter] Auth success for user ${user.get().id}")
+					Logger.LOG_INFO("[JWT Auth Filter] Auth success for user ${user.id}")
 				}
-				catch (e: Exception)
-				{
-					Logger.LOG_ERROR("[JWT Auth Filter] Error during authentication: ${e.message}")
-					RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed")
-					return
+			}
+			catch (e: Exception)
+			{
+				// Catch all exceptions during processing (like BadCredentialsException from step 3)
+				Logger.LOG_ERROR("[JWT Auth Filter] Error during authentication: ${e.message}")
+				// Send error response only if it hasn't been sent already
+				if (!RESPONSE.isCommitted) {
+					RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: ${e.message}")
 				}
+				return
 			}
 		}
 

@@ -8,19 +8,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
-/*
 @EntityListeners(AuditingEntityListener::class)
 @Entity
 @Table(name = "students")
 data class StudentEntity(
 	@Id
-	@UuidGenerator
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(
 		name      = "id",
 		updatable = false,
 		nullable  = false,
 		unique    = true)
-	val id: UUID = UUID.randomUUID(),
+	val id: Long = 0,
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(
@@ -65,4 +64,3 @@ data class StudentEntity(
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now()
 )
- */

@@ -66,4 +66,10 @@ class GlobalExceptionHandler
 		EXCEPTION : Exception,
 		REQUEST   : HttpServletRequest
 	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.UNAUTHORIZED) // 401
+
+	@ExceptionHandler(AuthorizationException::class)
+	fun handleAuthorizationException(
+		EXCEPTION : AuthorizationException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.FORBIDDEN) // 403
 }

@@ -8,6 +8,8 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -24,19 +26,19 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
-/*
+
 @EntityListeners(AuditingEntityListener::class)
 @Entity
 @Table(name = "gigs")
 data class GigEntity(
 	@Id
-	@UuidGenerator
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(
 		name      = "id",
 		updatable = false,
 		nullable  = false,
 		unique    = true)
-	val id: UUID = UUID.randomUUID(),
+	val id: Long = 0,
 
 	// - - - Many-to-One relationship with Employer
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -118,5 +120,3 @@ data class GigEntity(
 		updatable = true,
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now())
-
- */

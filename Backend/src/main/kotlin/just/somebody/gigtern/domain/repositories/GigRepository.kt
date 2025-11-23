@@ -1,11 +1,11 @@
 package just.somebody.gigtern.domain.repositories
 
-import just.somebody.gigtern.domain.entities.UserEntity
+import just.somebody.gigtern.domain.entities.GigEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface UserRepository : JpaRepository<UserEntity, Long>
+interface GigRepository : JpaRepository<GigEntity, Long>
 {
-	fun findByEmail(EMAIL: String): UserEntity?
+	fun findAllByEmployerId(employerId: Long): List<GigEntity>
 }
