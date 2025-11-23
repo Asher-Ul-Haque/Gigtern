@@ -17,7 +17,7 @@ annotation class ValidEmail(
 
 class EmailValidator : ConstraintValidator<ValidEmail, String>
 {
-	private val regex = "^[A-Za-z0-9]+@iiitd\\.ac\\.in$".toRegex()
+	private val regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
 
 	override fun isValid(EMAIL: String?, CONTEXT: ConstraintValidatorContext?): Boolean
 	{

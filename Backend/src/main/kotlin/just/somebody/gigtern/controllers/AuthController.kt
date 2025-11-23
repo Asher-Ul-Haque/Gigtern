@@ -6,6 +6,7 @@ import just.somebody.gigtern.controllers.dtos.responses.AuthResponseDTO
 import just.somebody.gigtern.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,4 +32,8 @@ class AuthController(private val SERVICE : AuthService)
 	{
 		return ResponseEntity(SERVICE.loginUser(REQUEST), HttpStatus.ACCEPTED)
 	}
+
+	@GetMapping
+	fun hello() : ResponseEntity<String>
+	{ return ResponseEntity("Hello", HttpStatus.ACCEPTED) }
 }

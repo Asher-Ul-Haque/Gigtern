@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -79,6 +80,23 @@ class GlobalExceptionHandler
 
 	fun handleError(
 		EXCEPTION : Exception,
+		REQUEST   : HttpServletRequest,
+		STATUS    : HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR
+	): ResponseEntity<ApiError>
+	{
+		Logger.LOG_ERROR("[Global Exception Handler] : ${STATUS.value()} - ${EXCEPTION.message}")
+
+		val error = ApiError(
+			status  = STATUS,
+			error   = EXCEPTION::class.simpleName ?: "Error",
+			message = EXCEPTION.message,
+			path    = REQUEST.requestURI)
+
+		return ResponseEntity(error, STATUS)
+	}
+
+	fun handleError(
+		EXCEPTION : HttpMessageNotReadableException,
 		REQUEST   : HttpServletRequest,
 		STATUS    : HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR
 	): ResponseEntity<ApiError>
