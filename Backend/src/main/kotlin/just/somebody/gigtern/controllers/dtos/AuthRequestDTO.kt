@@ -9,4 +9,6 @@ data class AuthRequestDTO(
 	@ValidEmail     val email     : String,
 	@ValidPassword  val password  : String,
 	@field:NotEmpty val name      : String,
-									val role      : Role)
+	val role      : Role,
+	val linkedin_url : String? =  null
+)

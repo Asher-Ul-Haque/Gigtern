@@ -2,7 +2,9 @@ package just.somebody.gigtern.service
 
 import just.somebody.gigtern.controllers.dtos.AuthRequestDTO
 import just.somebody.gigtern.controllers.dtos.AuthResponseDTO
+import just.somebody.gigtern.domain.entities.StudentEntity
 import just.somebody.gigtern.domain.entities.UserEntity
+import just.somebody.gigtern.domain.enums.Role
 
 fun AuthRequestDTO.toEntity(HASHED_PASSWORD : String) : UserEntity
 {
@@ -19,5 +21,14 @@ fun UserEntity.toResponseDTO(JWT: String, MESSAGE : String? = null) : AuthRespon
 		jwt = JWT,
 		userId = this.id,
 		role = this.role,
+		message = MESSAGE)
+}
+
+fun StudentEntity.toResponseDTO(JWT : String, MESSAGE: String? =  null) : AuthResponseDTO
+{
+	return AuthResponseDTO(
+		jwt = JWT,
+		userId = this.id,
+		role = Role.STUDENT,
 		message = MESSAGE)
 }

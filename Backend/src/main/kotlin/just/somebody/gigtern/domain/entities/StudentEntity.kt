@@ -8,7 +8,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
-/*
 @EntityListeners(AuditingEntityListener::class)
 @Entity
 @Table(name = "students")
@@ -20,7 +19,7 @@ data class StudentEntity(
 		updatable = false,
 		nullable  = false,
 		unique    = true)
-	val id: UUID = UUID.randomUUID(),
+	val id: Long = 0,
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(
@@ -45,6 +44,16 @@ data class StudentEntity(
 	@Column(name = "skill")
 	val skills: List<String> = emptyList(),
 
+    // - - - Stores social links
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name       = "student_links",
+        joinColumns = [JoinColumn(name = "student_id")])
+    @Column(name = "linkedin_url",
+		updatable = true,
+        nullable = true)
+    var linkedin_url : String = "",
+
 	// - - - WARN: Not counting for MVP
 	@Column(columnDefinition = "TEXT")
 	val studentIdProofUrl: String? = null,
@@ -65,4 +74,3 @@ data class StudentEntity(
 		unique    = false)
 	var updatedAt: LocalDateTime = LocalDateTime.now()
 )
- */

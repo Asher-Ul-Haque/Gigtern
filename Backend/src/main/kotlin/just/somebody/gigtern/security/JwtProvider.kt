@@ -32,6 +32,36 @@ class JwtProvider(private val CONFIG: JwtConfig)
 			.compact()
 	}
 
+	fun generateSocials(STUDENT_ID: Long, ROLE: Role, LINKEDIN_URL: String) : String
+	{
+		val now = Date()
+		val expiryDate = Date(now.time + CONFIG.expiration)
+		return Jwts.builder()
+			.subject(STUDENT_ID.toString())
+			.claim("role", ROLE.name)
+			.claim("linkedin_url", LINKEDIN_URL)
+			.issuedAt(now)
+			.expiration(expiryDate)
+			.signWith(key)
+			.compact()
+	}
+
+	fun getSocial(JWT : String) : Claims?
+	{
+		return try
+		{
+			Jwts.parser()
+				.verifyWith(key)
+				.build()
+				.parseSignedClaims(JWT)
+				.payload
+		}
+		catch (e : Exception)
+		{
+			Logger.LOG_ERROR("[JWT Provider] : JWT validation failed: ${e.message}")
+			null
+		}
+	}
 	// - - - get claims from token
 	fun getClaimsFromToken(JWT: String): Claims?
 	{
