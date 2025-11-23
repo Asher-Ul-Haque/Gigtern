@@ -1,10 +1,8 @@
 package just.somebody.gigtern.controllers
 
 import jakarta.validation.Valid
-import just.somebody.gigtern.controllers.dtos.AuthRequestDTO
-import just.somebody.gigtern.controllers.dtos.AuthResponseDTO
-import just.somebody.gigtern.domain.entities.UserEntity
-import just.somebody.gigtern.domain.repositories.UserRepository
+import just.somebody.gigtern.controllers.dtos.requests.AuthRequestDTO
+import just.somebody.gigtern.controllers.dtos.responses.AuthResponseDTO
 import just.somebody.gigtern.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

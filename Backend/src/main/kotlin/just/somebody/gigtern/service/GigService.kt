@@ -1,7 +1,7 @@
 package just.somebody.gigtern.service
 
-import just.somebody.gigtern.controllers.dtos.GigRequestDTO
-import just.somebody.gigtern.controllers.dtos.GigResponseDTO
+import just.somebody.gigtern.controllers.dtos.requests.GigRequestDTO
+import just.somebody.gigtern.controllers.dtos.responses.GigResponseDTO
 import just.somebody.gigtern.domain.entities.EmployerEntity
 import just.somebody.gigtern.domain.entities.UserEntity
 import just.somebody.gigtern.domain.enums.Role
@@ -9,6 +9,7 @@ import just.somebody.gigtern.domain.repositories.EmployerRepository
 import just.somebody.gigtern.domain.repositories.GigRepository
 import just.somebody.gigtern.utils.Logger
 import just.somebody.gigtern.utils.exceptions.AuthorizationException
+import just.somebody.gigtern.utils.exceptions.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -29,7 +30,7 @@ class GigService(
 		}
 
 		// - - - Fetch Employer Profile
-		return EMPLOYER_REPO.findByUser(USER) ?: throw Exception("Employer profile not found for user ID ${USER.id}.")
+		return EMPLOYER_REPO.findByUser(USER) ?: throw ResourceNotFoundException("Employer profile not found for user ID ${USER.id}.")
 	}
 
 
@@ -65,5 +66,5 @@ class GigService(
 		return GIG_REPO.findAllByEmployerId(employer.id).map{ it.toDTO() }
 	}
 
-	// V2: Add getGigById, updateGigStatus, etc., here.
+	// - - - TODO: Add getGigById, updateGigStatus, etc., here.
 }

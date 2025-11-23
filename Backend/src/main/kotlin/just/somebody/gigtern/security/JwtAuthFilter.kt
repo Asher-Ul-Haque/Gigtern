@@ -3,9 +3,9 @@ package just.somebody.gigtern.security
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import just.somebody.gigtern.domain.entities.UserEntity
 import just.somebody.gigtern.domain.repositories.UserRepository
 import just.somebody.gigtern.utils.Logger
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -21,16 +21,19 @@ class JwtAuthFilter(
 	private val CONFIG   : JwtConfig
 ): OncePerRequestFilter()
 {
-	override fun shouldNotFilter(REQUEST : HttpServletRequest): Boolean {
+	override fun shouldNotFilter(REQUEST : HttpServletRequest): Boolean
+	{
 		val path = REQUEST.servletPath
-		if (path.startsWith("/api/v1/register") ||
-			path.startsWith("/api/v1/login") || path.startsWith("/api/v1/gigs") && REQUEST.method == "GET"
-		) {
-			return true
-		}
-		return false
-	}
 
+		// 1. Check for Public Authentication Endpoints (Exact Match)
+		val isAuthEndpoint = path == "/api/v1/register" || path == "/api/v1/login"
+
+		// 2. Check for Public Gig Listing Endpoint (Exact Match + GET method)
+		val isPublicGigListing = path == "/api/v1/gigs" && REQUEST.method == HttpMethod.GET.name()
+
+		// Return true only if it is one of the strictly public endpoints
+		return isAuthEndpoint || isPublicGigListing
+	}
 
 	private fun resolveToken(REQUEST: HttpServletRequest) : String?
 	{
@@ -58,7 +61,7 @@ class JwtAuthFilter(
 		{
 			try
 			{
-				// 1. Validate token
+				// - --  Validate token
 				if (!PROVIDER.validateToken(jwt))
 				{
 					Logger.LOG_ERROR("[JWT Auth Filter] Invalid or expired JWT: $jwt")
@@ -66,7 +69,7 @@ class JwtAuthFilter(
 					return
 				}
 
-				// 2. Extract user ID (now expected to be a Long ID string)
+				//  - -- Extract user ID (now expected to be a Long ID string)
 				val userId = PROVIDER.getUserIdFromToken(jwt)
 				if (userId == null)
 				{
@@ -75,11 +78,10 @@ class JwtAuthFilter(
 					return
 				}
 
-				// 3. Set Authentication Context if not already set
+				// - - - Set Authentication Context if not already set
 				if (SecurityContextHolder.getContext().authentication == null)
 				{
-
-					// Fetch UserEntity from DB (ID is Long now)
+					// - - - Fetch UserEntity from DB (ID is Long now)
 					val userOptional = REPO.findById(userId)
 					if (userOptional.isEmpty)
 					{
@@ -87,16 +89,13 @@ class JwtAuthFilter(
 						throw BadCredentialsException("User not found in database for ID: $userId")
 					}
 
-					val user = userOptional.get() // Get the UserEntity
-
-					// 4. Create authorities list using ROLE_ prefix
-					// We use user.getRole().name() because role is a public val in the entity
+					// - - - Create authorities list using ROLE_ prefix
+					val user        = userOptional.get()
 					val authorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
 
-					// 5. Create authentication token
-					// FIX: Ensure the principal passed is the UserEntity object
+					// - - - Create authentication token
 					val auth = UsernamePasswordAuthenticationToken(
-						user, // This is the UserEntity object that becomes the @AuthenticationPrincipal
+						user, // - - - @AUTH PRINCIPLA
 						null,
 						authorities)
 
@@ -107,10 +106,12 @@ class JwtAuthFilter(
 			}
 			catch (e: Exception)
 			{
-				// Catch all exceptions during processing (like BadCredentialsException from step 3)
+				// - - - Catch all exceptions during processing (like BadCredentialsException from step 3)
 				Logger.LOG_ERROR("[JWT Auth Filter] Error during authentication: ${e.message}")
-				// Send error response only if it hasn't been sent already
-				if (!RESPONSE.isCommitted) {
+
+				// - - - Send error response only if it hasn't been sent already
+				if (!RESPONSE.isCommitted)
+				{
 					RESPONSE.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: ${e.message}")
 				}
 				return

@@ -1,4 +1,4 @@
-package just.somebody.gigtern.controllers.dtos
+package just.somebody.gigtern.controllers.dtos.responses
 
 import just.somebody.gigtern.domain.enums.GigStatus
 import just.somebody.gigtern.domain.enums.PaymentType

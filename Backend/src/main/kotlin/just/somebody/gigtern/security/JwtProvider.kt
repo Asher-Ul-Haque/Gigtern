@@ -4,8 +4,12 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import just.somebody.gigtern.domain.entities.UserEntity
 import just.somebody.gigtern.domain.enums.Role
 import just.somebody.gigtern.utils.Logger
+import just.somebody.gigtern.utils.exceptions.AuthorizationException
+import org.springframework.context.annotation.Bean
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import java.util.Date
 import javax.crypto.SecretKey
