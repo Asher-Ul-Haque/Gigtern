@@ -1,34 +1,81 @@
 package just.somebody.gigtern.utils.exceptions
 
-import jakarta.servlet.http.HttpServletRequest
 import just.somebody.gigtern.service.exceptions.UserAlreadyExistsException
 import just.somebody.gigtern.service.exceptions.UserNotFoundException
 import just.somebody.gigtern.utils.Logger
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.lang.SecurityException
 
 @RestControllerAdvice
 class GlobalExceptionHandler
 {
+	// - - - Handle ApplicationException -> 400 Bad Request (Due to invalid state, e.g., already applied, gig closed)
+	@ExceptionHandler(ApplicationException::class)
+	fun handleApplicationException(
+		EXCEPTION : ApplicationException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.BAD_REQUEST)
+
+	// - - - Handle ResourceNotFoundException -> 404 Not Found
+	@ExceptionHandler(ResourceNotFoundException::class)
+	fun handleResourceNotFound(
+		EXCEPTION : ResourceNotFoundException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.NOT_FOUND)
+
+	// - - - Handle AuthorizationException -> 403 Forbidden (Unauthorized role/ownership)
+	@ExceptionHandler(AuthorizationException::class)
+	fun handleAuthorizationException(
+		EXCEPTION : AuthorizationException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.FORBIDDEN)
+
+	// - - - Handle UserAlreadyExistsException -> 409 Conflict
+	@ExceptionHandler(UserAlreadyExistsException::class)
+	fun handleUserAlreadyExists(
+		EXCEPTION : UserAlreadyExistsException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.CONFLICT)
+
+	// - - - Handle UserNotFoundException -> 404 Not Found
+	@ExceptionHandler(UserNotFoundException::class)
+	fun handleUserNotFound(
+		EXCEPTION : UserNotFoundException,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.NOT_FOUND)
+
+	// - - - Handle SecurityException/AuthenticationException -> 401 Unauthorized
+	@ExceptionHandler(SecurityException::class, AuthenticationException::class)
+	fun handleAuthenticationFailure(
+		EXCEPTION : Exception,
+		REQUEST   : HttpServletRequest
+	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.UNAUTHORIZED)
+
+	// - - - Handle Bad Requests
 	@ExceptionHandler(IllegalArgumentException::class)
 	fun handleBadRequest(
 		EXCEPTION : IllegalArgumentException,
 		REQUEST   : HttpServletRequest
 	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.BAD_REQUEST)
 
+	// - - - Handle Illegal Exceptions
 	@ExceptionHandler(IllegalStateException::class)
 	fun handleForbidden(
 		EXCEPTION : IllegalStateException,
 		REQUEST   : HttpServletRequest
 	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.FORBIDDEN)
 
-	@ExceptionHandler(MethodArgumentNotValidException::class)
+	// - - - Handle Validation Errors
+	@ExceptionHandler(MethodArgumentNotValidException::class, ValidationException::class)
 	fun handleValidation(
-		EXCEPTION : MethodArgumentNotValidException,
+		EXCEPTION : Exception,
 		REQUEST   : HttpServletRequest
 	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.BAD_REQUEST)
 
@@ -42,34 +89,10 @@ class GlobalExceptionHandler
 
 		val error = ApiError(
 			status  = STATUS,
-			error   = EXCEPTION::class.toString(),
+			error   = EXCEPTION::class.simpleName ?: "Error",
 			message = EXCEPTION.message,
 			path    = REQUEST.requestURI)
 
 		return ResponseEntity(error, STATUS)
 	}
-
-	@ExceptionHandler(UserAlreadyExistsException::class)
-	fun handleUserAlreadyExists(
-		EXCEPTION : UserAlreadyExistsException,
-		REQUEST   : HttpServletRequest
-	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.CONFLICT) // 409
-
-	@ExceptionHandler(UserNotFoundException::class)
-	fun handleUserNotFound(
-		EXCEPTION : UserNotFoundException,
-		REQUEST   : HttpServletRequest
-	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.NOT_FOUND) // 404
-
-	@ExceptionHandler(SecurityException::class, AuthenticationException::class)
-	fun handleAuthenticationFailure(
-		EXCEPTION : Exception,
-		REQUEST   : HttpServletRequest
-	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.UNAUTHORIZED) // 401
-
-	@ExceptionHandler(AuthorizationException::class)
-	fun handleAuthorizationException(
-		EXCEPTION : AuthorizationException,
-		REQUEST   : HttpServletRequest
-	): ResponseEntity<ApiError> = handleError(EXCEPTION, REQUEST, HttpStatus.FORBIDDEN) // 403
 }
