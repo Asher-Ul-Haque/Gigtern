@@ -21,4 +21,6 @@ class UserController(
 		val profile           = USER_SERVICE.getMyProfile(authenticatedUser)
 		return ResponseEntity(profile, HttpStatus.OK)
 	}
+
+	// - - - TODO: Partial profile
 }

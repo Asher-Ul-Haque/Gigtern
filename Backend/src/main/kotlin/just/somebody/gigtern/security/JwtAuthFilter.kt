@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import just.somebody.gigtern.domain.repositories.UserRepository
 import just.somebody.gigtern.utils.Logger
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -22,14 +23,16 @@ class JwtAuthFilter(
 {
 	override fun shouldNotFilter(REQUEST : HttpServletRequest): Boolean
 	{
-		Logger.LOG_WARNING("[JwtAuthFilter] : CHANGE THIS!!! WAS FOR DEBUGGING")
 		val path = REQUEST.servletPath
-		if (path.startsWith("/api/v1/register") ||
-			path.startsWith("/api/v1/login") || path.startsWith("/api/v1/gigs") && REQUEST.method == "GET"
-		) {
-			return true
-		}
-		return false
+
+		// 1. Check for Public Authentication Endpoints (Exact Match)
+		val isAuthEndpoint = path == "/api/v1/register" || path == "/api/v1/login"
+
+		// 2. Check for Public Gig Listing Endpoint (Exact Match + GET method)
+		val isPublicGigListing = path == "/api/v1/gigs" && REQUEST.method == HttpMethod.GET.name()
+
+		// Return true only if it is one of the strictly public endpoints
+		return isAuthEndpoint || isPublicGigListing
 	}
 
 	private fun resolveToken(REQUEST: HttpServletRequest) : String?
