@@ -1,7 +1,5 @@
 package just.somebody.gigtern.utils.exceptions
 
-import just.somebody.gigtern.service.exceptions.UserAlreadyExistsException
-import just.somebody.gigtern.service.exceptions.UserNotFoundException
 import just.somebody.gigtern.utils.Logger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ValidationException

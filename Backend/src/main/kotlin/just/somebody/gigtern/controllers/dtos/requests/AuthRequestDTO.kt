@@ -1,4 +1,4 @@
-package just.somebody.gigtern.controllers.dtos
+package just.somebody.gigtern.controllers.dtos.requests
 
 import jakarta.validation.constraints.NotEmpty
 import just.somebody.gigtern.domain.enums.Role

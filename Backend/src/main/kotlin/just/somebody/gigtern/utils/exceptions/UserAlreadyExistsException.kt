@@ -1,3 +1,3 @@
-package just.somebody.gigtern.service.exceptions
+package just.somebody.gigtern.utils.exceptions
 
 class UserAlreadyExistsException(MESSAGE: String?) : RuntimeException(MESSAGE)

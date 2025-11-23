@@ -1,7 +1,7 @@
 package just.somebody.gigtern
 
 
-import just.somebody.gigtern.controllers.dtos.ApplicationRequestDTO
+import just.somebody.gigtern.controllers.dtos.requests.ApplicationRequestDTO
 import just.somebody.gigtern.domain.entities.*
 import just.somebody.gigtern.domain.enums.ApplicationStatus
 import just.somebody.gigtern.domain.enums.GigStatus

@@ -1,132 +1,114 @@
 package just.somebody.gigtern.service
 
-import just.somebody.gigtern.controllers.dtos.ApplicationRequestDTO
-import just.somebody.gigtern.controllers.dtos.ApplicationResponseDTO
-import just.somebody.gigtern.controllers.dtos.toResponseDTO
+import just.somebody.gigtern.controllers.dtos.requests.ApplicationRequestDTO
+import just.somebody.gigtern.controllers.dtos.requests.ApplicationResponseDTO
 import just.somebody.gigtern.domain.repositories.ApplicationRepository
 import just.somebody.gigtern.utils.exceptions.AuthorizationException
-
 import just.somebody.gigtern.domain.entities.UserEntity
 import just.somebody.gigtern.domain.enums.ApplicationStatus
 import just.somebody.gigtern.domain.enums.GigStatus
 import just.somebody.gigtern.domain.enums.Role
 import just.somebody.gigtern.domain.repositories.GigRepository
 import just.somebody.gigtern.domain.repositories.StudentRepository
-
 import just.somebody.gigtern.utils.Logger
 import just.somebody.gigtern.utils.exceptions.ApplicationException
 import just.somebody.gigtern.utils.exceptions.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * Service layer for handling Gig applications from students.
- */
-
-/**
- * Service layer for handling Gig applications from students and managing the match process.
- */
+// - - - Service layer for handling Gig applications from students and managing the match process.
 @Service
 class ApplicationService(
-	private val applicationRepository: ApplicationRepository,
-	private val gigRepository: GigRepository,
-	private val studentRepository: StudentRepository
-) {
-
-	// --- Student Application Submission (Existing) ---
+	private val APPLICATION_REPO  : ApplicationRepository,
+	private val GIG_REPO          : GigRepository,
+	private val STUDENT_REPO      : StudentRepository
+)
+{
+	// - - - Student Application Submission
 	@Transactional
-	fun applyForGig(gigId: Long, request: ApplicationRequestDTO, authenticatedUser: UserEntity): ApplicationResponseDTO {
-		// 1. Role Check: Only students can apply
-		if (authenticatedUser.role != Role.STUDENT) {
-			Logger.LOG_ERROR("[Application Service] User ${authenticatedUser.id} tried to apply without STUDENT role.")
+	fun applyForGig(GIG_ID: Long, REQUEST: ApplicationRequestDTO, AUTHENTICATED_USER: UserEntity): ApplicationResponseDTO
+	{
+		// - - - Role Check: Only students can apply
+		if (AUTHENTICATED_USER.role != Role.STUDENT)
+		{
+			Logger.LOG_ERROR("[Application Service] User ${AUTHENTICATED_USER.id} tried to apply without STUDENT role.")
 			throw AuthorizationException("Only Students can apply for gigs.")
 		}
-		val student = studentRepository.findByUser(authenticatedUser)
-			?: throw ResourceNotFoundException("Student profile not found for user ID ${authenticatedUser.id}.")
-		val gig = gigRepository.findById(gigId)
-			.orElseThrow { ResourceNotFoundException("Gig not found with ID: $gigId") }
-		if (gig.status != GigStatus.OPEN) {
+		val student = STUDENT_REPO.findByUser(AUTHENTICATED_USER)
+			?: throw ResourceNotFoundException("Student profile not found for user ID ${AUTHENTICATED_USER.id}.")
+		val gig = GIG_REPO.findById(GIG_ID)
+			.orElseThrow { ResourceNotFoundException("Gig not found with ID: $GIG_ID") }
+		if (gig.status != GigStatus.OPEN)
+		{
 			throw ApplicationException("Gig is not open for applications. Current status: ${gig.status.name}")
 		}
 
-		val newApplication = request.toEntity(gig, student)
-		val savedApplication = applicationRepository.save(newApplication)
+		val newApplication    = REQUEST.toEntity(gig, student)
+		val savedApplication  = APPLICATION_REPO.save(newApplication)
 
-		Logger.LOG_INFO("[Application Service] Student ${student.id} applied for Gig ${gigId}. Application ID: ${savedApplication.id}.")
+		Logger.LOG_INFO("[Application Service] Student ${student.id} applied for Gig ${GIG_ID}. Application ID: ${savedApplication.id}.")
 		return savedApplication.toResponseDTO()
 	}
 
 
-	// --- NEW: Employer Views Applications ---
+	// - - - Employer Views Applications
+	fun getApplicationsForGig(GIG_ID : Long, AUTHENTICATED_USER_ENTITY : UserEntity): List<ApplicationResponseDTO>
+	{
+		// - - - Fetch Gig and check ownership
+		val gig      = GIG_REPO.findById(GIG_ID).orElseThrow { ResourceNotFoundException("Gig not found with ID: $GIG_ID") }
+		val employer = gig.employer
 
-	/**
-	 * GET: Retrieves all applications for a specific gig.
-	 * @param gigId The ID of the gig.
-	 * @param authenticatedUser The user requesting the list (must be the gig's Employer).
-	 * @return List of Application details.
-	 */
-	fun getApplicationsForGig(gigId: Long, authenticatedUser: UserEntity): List<ApplicationResponseDTO> {
-		// 1. Fetch Gig and check ownership
-		val gig = gigRepository.findById(gigId)
-			.orElseThrow { ResourceNotFoundException("Gig not found with ID: $gigId") }
-
-		val employer = gig.employer // Get the linked employer
-
-		// Check if the authenticated user owns this gig
-		if (authenticatedUser.id != employer.user.id) {
-			Logger.LOG_ERROR("[Application Service] User ${authenticatedUser.id} attempted to view applications for Gig ${gigId} without ownership.")
+		// - - - Check if the authenticated user owns this gig
+		if (AUTHENTICATED_USER_ENTITY.id != employer.user.id)
+		{
+			Logger.LOG_ERROR("[Application Service] User ${AUTHENTICATED_USER_ENTITY.id} attempted to view applications for Gig ${GIG_ID} without ownership.")
 			throw AuthorizationException("You are not authorized to view applications for this gig.")
 		}
 
-		// 2. Fetch all applications for the gig
-		return applicationRepository.findAllByGigId(gigId)
+		// - - - Fetch all applications for the gig
+		return APPLICATION_REPO.findAllByGigId(GIG_ID)
 			.map { it.toResponseDTO() }
 	}
 
-
-	// --- NEW: Employer Accepts Application ---
-
-	/**
-	 * PATCH: Accepts a specific application, finalizing the match.
-	 * @param applicationId The ID of the application to accept.
-	 * @param authenticatedUser The user accepting the application (must be the gig's Employer).
-	 * @return The updated Application details.
-	 */
+	// - - - Employer Accepts Application
 	@Transactional
-	fun acceptApplication(applicationId: Long, authenticatedUser: UserEntity): ApplicationResponseDTO {
-		// 1. Fetch Application and Gig
-		val application = applicationRepository.findById(applicationId)
-			.orElseThrow { ResourceNotFoundException("Application not found with ID: $applicationId") }
+	fun acceptApplication(APPLICATION_ID: Long, AUTHENTICATED_USER: UserEntity): ApplicationResponseDTO
+	{
+		// - - - Fetch Application and Gig
+		val application = APPLICATION_REPO.findById(APPLICATION_ID)
+			.orElseThrow { ResourceNotFoundException("Application not found with ID: $APPLICATION_ID") }
 
 		val gig = application.gig
 
-		// 2. Ownership Check (re-use logic from viewing)
-		if (authenticatedUser.id != gig.employer.user.id) {
-			Logger.LOG_ERROR("[Application Service] User ${authenticatedUser.id} attempted to accept application ${applicationId} without ownership.")
+		// - - - Ownership Check
+		if (AUTHENTICATED_USER.id != gig.employer.user.id)
+		{
+			Logger.LOG_ERROR("[Application Service] User ${AUTHENTICATED_USER.id} attempted to accept application ${APPLICATION_ID} without ownership.")
 			throw AuthorizationException("You are not authorized to accept applications for this gig.")
 		}
 
-		// 3. Status Checks
-		if (gig.status != GigStatus.OPEN) {
+		// - - - Status Checks
+		if (gig.status != GigStatus.OPEN)
+		{
 			throw ApplicationException("Cannot accept application. Gig is already matched or closed (Status: ${gig.status.name}).")
 		}
-		if (application.status != ApplicationStatus.APPLIED) {
+		if (application.status != ApplicationStatus.APPLIED)
+		{
 			throw ApplicationException("Application status is not 'APPLIED' (Status: ${application.status.name}).")
 		}
 
-		// 4. Update Statuses
+		// - - - Update Statuses - - -
 
-		// a) Update Application Status
+		// - - - Update Application Status
 		val updatedApplication = application.copy(status = ApplicationStatus.ACCEPTED)
-		applicationRepository.save(updatedApplication)
+		APPLICATION_REPO.save(updatedApplication)
 
-		// b) Update Gig Status (This is the match!)
+		// - - - Update Gig Status
 		gig.status = GigStatus.MATCHED
-		gigRepository.save(gig)
+		GIG_REPO.save(gig)
 
-		// V2: In a real app, this would also trigger rejection for all other applications.
-
-		Logger.LOG_INFO("[Application Service] Application ${applicationId} ACCEPTED. Gig ${gig.id} matched.")
+		Logger.LOG_WARNING("[Application Service] : MVP Assumption : trigger rejections for all other applications")
+		Logger.LOG_INFO("[Application Service] Application $APPLICATION_ID ACCEPTED. Gig ${gig.id} matched.")
 		return updatedApplication.toResponseDTO()
 	}
 }
