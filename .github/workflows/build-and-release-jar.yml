@@ -3,8 +3,8 @@ name: Build and Release Backend JAR
 on:
   push:
     tags:
-      - 'v*'   
-  workflow_dispatch:  
+      - 'v*' 
+  workflow_dispatch: 
 
 jobs:
   build-and-release:
@@ -20,18 +20,20 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build JAR
-        run: ./gradlew clean build
+      - name: Build Backend JAR
+        run: |
+          cd Backend
+          ./gradlew clean build
 
-      - name: Create Release
+      - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
 
-      - name: Upload JAR to Release
+      - name: Upload Backend JAR to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/libs/app.jar
+          files: Backend/build/libs/app.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
