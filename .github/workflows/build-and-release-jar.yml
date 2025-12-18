@@ -23,7 +23,7 @@ jobs:
       - name: Build Backend JAR
         run: |
           cd Backend
-          ./gradlew clean build
+          ./gradlew bootJar
 
       - name: Create GitHub Release
         id: create_release
